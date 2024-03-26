@@ -1,0 +1,5 @@
+For analyzing the ratio of tokens (total words) and types (unique words), you would first segment your chosen Wikipedia article as described. Then, count the tokens and types for one paragraph, three paragraphs, and the entire text. The ratio is calculated by dividing the number of types by the number of tokens.
+
+Unfortunately, without running the commands on actual data, I can't provide specific ratios. However, generally, as the text size increases (from one paragraph to the entire article), the ratio of types to tokens tends to decrease. This is because, in a larger text, many words get repeated, increasing the total word count (tokens) more than the unique word count (types).
+
+And there you have it! A little bit of command-line wizardry to dissect texts into manageable bits. 📖✨ Feel free to ask more questions if you need further clarification or help with another topic!
