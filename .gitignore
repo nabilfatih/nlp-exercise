@@ -9,7 +9,10 @@
 # testing
 /coverage
 /ue2/sequitur-g2p
+ue2/sequitur-g2p
 /sequitur-g2p
+/ue2/sequitur-g2p
+/ue2/*
 
 # next.js
 /.next/
