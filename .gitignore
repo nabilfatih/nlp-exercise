@@ -8,6 +8,7 @@
 .vscode
 # testing
 /coverage
+/ue2/sequitur-g2p
 
 # next.js
 /.next/
