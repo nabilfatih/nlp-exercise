@@ -15,7 +15,6 @@ def is_in_language(words: list, grammar: Grammar) -> bool:
     
     return grammar.start_symbol in chart[0][0]
     
-    raise NotImplementedError  # TODO: in the beginning, this is your job.
     # it is easier to start out with a parser that merely
     # checks if the sentence is in the language at all (without returning
     # the derivations).
@@ -31,8 +30,10 @@ def parse(words: list, grammar: Grammar) -> list:
     returns a list of ParseTree
     """
     raise NotImplementedError  # TODO: this is your job.
-    return [x for x in chart[0][0] if x.symbol == grammar.start_symbol]  # not much better than the exception because we promise above to return all parses...
-
+    l =  [x for x in chart[0][0] if x.symbol == grammar.start_symbol]  # not much better than the exception because we promise above to return all parses...
+    for x in l:
+        x.__class__ = ParseTree
+    return l
 
 def example_telescope_parse():
     return \

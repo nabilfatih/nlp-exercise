@@ -89,9 +89,9 @@ class Grammar:
     # H 3.1
     def is_CNF(self):
         for rule in self.rules:
-            if len(rule.rhs) == 1 and rule.rhs[0].terminal:
+            if len(rule.rhs) == 1 and rule.rhs[0].terminal: # terminal rhs
                 continue
-            if len(rule.rhs) == 2 and not rule.rhs[0].terminal and not rule.rhs[1].terminal:
+            if len(rule.rhs) == 2 and not rule.rhs[0].terminal and not rule.rhs[1].terminal: # non-terminal rhs
                 continue
             return False
         return True
