@@ -1,6 +1,6 @@
 import grammar
 import parse
-import parser
+import parser # type: ignore
 
 with open("../data/telescope.srgs", "r") as f:
     lines = f.readlines()
