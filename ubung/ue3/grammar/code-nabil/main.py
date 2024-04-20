@@ -14,10 +14,9 @@ print(gr.is_CNF())
 
 print(parser.example_telescope_parse().to_dot())
 
+# H 3.2
 sentence = "I saw the duck with a telescope"
 tokens = sentence.split(" ")
-
-# H 3.2
 isInLanguage = parser.is_in_language(tokens, gr)
 print(isInLanguage)
 
