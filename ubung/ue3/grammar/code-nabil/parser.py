@@ -1,39 +1,81 @@
 from grammar import *
 from parse import *
 
-
+# H 3.2
 def is_in_language(words: list, grammar: Grammar) -> bool:
+    # Initialize chart to store constituents that can generate substrings
     n = len(words)
-    chart = [[defaultdict(lambda: []) for _ in range(n - i)] for i in range(n)]
-    
-    # first step: initialize bottom row of the table
-    # main steps for each row
-    # for each cell
-    # look at possible splits of left/right
-    # if we find one (use symbols left/right as pairs in grammar.rule_map to look up the rules)
-    # add ParseNode that points to ParseNodes in left/right cells and has lhs of rule as "symbol"
-    
-    return grammar.start_symbol in chart[0][0]
-    
-    # it is easier to start out with a parser that merely
-    # checks if the sentence is in the language at all (without returning
-    # the derivations).
-    # eventually, once you have implemented parse() below,
-    # you can simply write
-    # "return len(parse(words, grammar)) > 0"
+    chart = [[set() for _ in range(n + 1)] for _ in range(n + 1)]
 
+    # Initialize chart with lexical items (words)
+    for i in range(1, n + 1):
+        word = words[i - 1]
+        for rule in grammar.rule_map[(Symbol(word),)]:
+            chart[i - 1][i].add(rule.lhs)
 
+    # CKY algorithm for parsing
+    for length in range(2, n + 1):
+        for start in range(n - length + 1):
+            end = start + length
+            for mid in range(start + 1, end):
+                for rule in grammar.rules:
+                    if len(rule.rhs) == 2:  # Consider only binary rules
+                        left, right = rule.rhs
+                        if left in chart[start][mid] and right in chart[mid][end]:
+                            chart[start][end].add(rule.lhs)
+
+    # Check if the start symbol is in the last cell of the chart
+    return grammar.start_symbol in chart[0][n]
+
+# H 3.3
 def parse(words: list, grammar: Grammar) -> list:
-    """
-    parses the list of words with grammar and returns the (possibly empty) list
-    of possible parses. The ordering of possible parses is arbitrary.
-    returns a list of ParseTree
-    """
-    raise NotImplementedError  # TODO: this is your job.
-    l =  [x for x in chart[0][0] if x.symbol == grammar.start_symbol]  # not much better than the exception because we promise above to return all parses...
-    for x in l:
-        x.__class__ = ParseTree
-    return l
+    # Function to recursively build parse trees
+    def build_trees(chart, start, end, symbol):
+        # Base case: if only one word, return a parse node with the word as terminal
+        if end - start == 1:
+            return [ParseNode(symbol, [ParseNode(Symbol(words[start]))])]
+        
+        # Recursive case: build trees using binary rules
+        trees = []
+        for mid in range(start + 1, end):
+            for rule in grammar.rules:
+                if len(rule.rhs) == 2:  # Consider only binary rules
+                    left, right = rule.rhs
+                    if left in chart[start][mid] and right in chart[mid][end]:
+                        left_trees = build_trees(chart, start, mid, left)
+                        right_trees = build_trees(chart, mid, end, right)
+                        # Combine left and right trees with current non-terminal symbol
+                        for lt in left_trees:
+                            for rt in right_trees:
+                                trees.append(ParseNode(symbol, [lt, rt]))
+        return trees
+
+    # Initialize chart to store constituents that can generate substrings
+    n = len(words)
+    chart = [[set() for _ in range(n + 1)] for _ in range(n + 1)]
+
+    # Initialize chart with lexical items (words)
+    for i in range(1, n + 1):
+        word = words[i - 1]
+        for rule in grammar.rule_map[(Symbol(word),)]:
+            chart[i - 1][i].add(rule.lhs)
+
+    # CKY algorithm for parsing
+    for length in range(2, n + 1):
+        for start in range(n - length + 1):
+            end = start + length
+            for mid in range(start + 1, end):
+                for rule in grammar.rules:
+                    if len(rule.rhs) == 2:  # Consider only binary rules
+                        left, right = rule.rhs
+                        if left in chart[start][mid] and right in chart[mid][end]:
+                            chart[start][end].add(rule.lhs)
+
+    # Generate parse trees using the built chart
+    trees = build_trees(chart, 0, n, grammar.start_symbol)
+    # Return list of parse trees
+    return [ParseTree(grammar.start_symbol, [tree]) for tree in trees]
+
 
 def example_telescope_parse():
     return \
