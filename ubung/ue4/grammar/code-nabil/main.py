@@ -96,3 +96,30 @@ if __name__ == "__main__":
     test_normalization()
     print("\nTesting Extra Node Removal:")
     test_extra_node_removal()
+
+
+"""
+Output:
+Testing Parsing:
+[$S [$S [$NP I] [$VP [$V saw] [$NP [$NP [$Det the] [$N duck]] [$PP [$P with] [$NP [$Det a] [$N telescope]]]]]]]
+[$S [$S [$NP I] [$VP [$VP [$V saw] [$NP [$Det the] [$N duck]]] [$PP [$P with] [$NP [$Det a] [$N telescope]]]]]]
+
+Testing Normalization:
+#ABNF V1.0 utf-8;
+language en;
+$S = $NP $VP;
+$NP = I | $NP $PP | $Det $N;
+$Det = her | my | a | the;
+$N = telescope | saw | duck;
+$VP = $VP $PP | $V $NP;
+$V = saw | duck;
+$PP = $P $NP;
+$P = with;
+
+
+Testing Extra Node Removal:
+Parse Tree before extra node removal:
+[$S [$NP [$Det the] [$N duck] [$NP_NT [$Det the] [$N telescope]]] [$VP [$V saw] [$NP [$Det the] [$N duck]] [$PP [$P with] [$NP [$Det a] [$N telescope]]]]]
+Parse Tree after extra node removal:
+[$S [$NP the duck [$NP_NT the telescope]] [$VP saw [$NP the duck] [$PP with [$NP a telescope]]]]
+"""
