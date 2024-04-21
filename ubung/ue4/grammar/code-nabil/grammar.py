@@ -20,7 +20,8 @@ class Symbol:
         return self.symbol == other.symbol and self.terminal == other.terminal
 
     def __hash__(self):
-        return hash(self.symbol)
+        # Ensure that Symbol objects are hashable
+        return hash((self.symbol, self.terminal))
 
 
 class GrammarRule:
@@ -40,6 +41,10 @@ class GrammarRule:
 
     def __repr__(self):
         return str(self.lhs) + " = " + " ".join([str(s) for s in self.rhs]) + ";"
+    
+    def __hash__(self):
+        # Ensure that GrammarRule objects are hashable
+        return hash((self.lhs, tuple(self.rhs)))
 
 
 class Grammar:
@@ -111,30 +116,55 @@ class Grammar:
     
     # H 4.1.3
     def normalize_to_relaxedCNF(self):
-        normalized_rules = []  # New set of rules after normalization
+        # Create dictionaries to store normalized rules, public rules, and start symbol
+        normalized_rules = {}
+        public_rules = {}
+        start_symbol = None
+
+        # Iterate over each rule in the grammar
         for rule in self.rules:
+            # Track public rules and start symbol
+            if "public" in str(rule):
+                public_rules[rule.lhs] = rule.rhs
+            if rule.lhs == self.start_symbol:
+                start_symbol = rule.lhs
+
             if len(rule.rhs) > 2:
-                # Replace rule with equivalent binary rules
+                # If the rule has more than two symbols on the right-hand side, split it into binary rules
                 lhs = rule.lhs
                 non_terminals = [Symbol(f"${lhs.symbol}_NT{i}") for i in range(len(rule.rhs) - 1)]
                 for i, rhs_symbol in enumerate(rule.rhs[:-1]):
-                    normalized_rules.append(GrammarRule(lhs, [rhs_symbol, non_terminals[i]]))
+                    new_rule = GrammarRule(lhs, [rhs_symbol, non_terminals[i]])
+                    normalized_rules.setdefault(lhs, set()).add(tuple(new_rule.rhs))
                     lhs = non_terminals[i]
-                normalized_rules.append(GrammarRule(lhs, [rule.rhs[-1]]))
-                # Mark original rule and new non-terminal symbols as normalized
-                rule.lhs.normalized = True
-                for symbol in non_terminals:
-                    symbol.normalized = True
+                new_rule = GrammarRule(lhs, [rule.rhs[-1]])
+                normalized_rules.setdefault(lhs, set()).add(tuple(new_rule.rhs))
             elif len(rule.rhs) == 1 and not rule.rhs[0].terminal:
-                # Replace unary rule with equivalent binary rule
+                # If the rule is unary, replace it with a binary rule
                 new_symbol = Symbol(f"${rule.lhs.symbol}_NT")
-                normalized_rules.append(GrammarRule(rule.lhs, [rule.rhs[0], new_symbol]))
-                # Mark original rule and new non-terminal symbol as normalized
-                rule.lhs.normalized = True
-                new_symbol.normalized = True
+                new_rule = GrammarRule(rule.lhs, [rule.rhs[0], new_symbol])
+                normalized_rules.setdefault(rule.lhs, set()).add(tuple(new_rule.rhs))
             else:
                 # Keep the rule unchanged
-                normalized_rules.append(rule)
-        # Update grammar with normalized rules
-        self.rules = normalized_rules
+                normalized_rules.setdefault(rule.lhs, set()).add(tuple(rule.rhs))
+
+        # Update the grammar with normalized rules, public rules, and start symbol
+        self.rules = [GrammarRule(lhs, list(rhs_list)) for lhs, rhs_list in normalized_rules.items()]
+        self.rules.extend([GrammarRule(lhs, list(rhs_list)) for lhs, rhs_list in public_rules.items()])
+        self.start_symbol = start_symbol
+
+    def __repr__(self):
+        # Format the grammar rules as a string
+        grammar_str = "#ABNF V1.0 utf-8;\n"
+        grammar_str += f"language = {self.language};\n"
+
+        for rule in self.rules:
+            if "public" in str(rule):
+                grammar_str += "public "
+            grammar_str += f"{str(rule.lhs)} = "
+            grammar_str += " | ".join(str(sym) for sym in rule.rhs)
+            grammar_str += ";\n"
+
+        # remove parentheses and commas
+        return grammar_str.replace("(", "").replace(")", "").replace(",", "")
 

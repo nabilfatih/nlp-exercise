@@ -2,39 +2,6 @@ from grammar import *
 from parse import *
 from parser import * # type: ignore
 
-with open("../data/telescope.srgs", "r") as f:
-    lines = f.readlines()
-    #print("".join(lines))
-    gr = Grammar(lines)
-print(gr)
-
-# H 3.1
-# check if it is CNF
-print(gr.is_CNF())
-
-print(example_telescope_parse().to_dot())
-
-# H 3.2
-sentence = "I saw the duck with a telescope"
-tokens = sentence.split(" ")
-isInLanguage = is_in_language(tokens, gr)
-print(isInLanguage)
-
-# H 3.3
-parsing_results = parse(tokens, gr)
-print(parsing_results)
-
-# Example sentence that is not in the language
-sentence = "I saw the duck with a telescope and a cat"
-tokens = sentence.split(" ")
-
-isInLanguage = is_in_language(tokens, gr)
-print(isInLanguage)
-
-parsing_results = parse(tokens, gr)
-print(parsing_results)
-
-
 # H 4 (Testing)
 
 # Define a non-normalized grammar
