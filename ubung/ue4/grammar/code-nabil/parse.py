@@ -3,12 +3,10 @@ from operator import itemgetter
 
 _node_id = 0  # counter to ensure that _next_node_id() will create unique IDs
 
-
 def _next_node_id():
     global _node_id
     _node_id += 1
     return _node_id
-
 
 class ParseNode:
     """a parse node consists of the constituent symbol (for non-terminals) or the terminal symbol"""
@@ -43,6 +41,7 @@ class ParseNode:
     def remove_normalized_nodes(self):
         """Recursively removes extra nodes introduced during normalization."""
         self.productions = [p.remove_normalized_nodes() for p in self.productions]
+        # If there is only one production, return it
         if len(self.productions) == 1:
             return self.productions[0]
         return self
@@ -79,6 +78,7 @@ class ParseTree(ParseNode):
     def remove_normalized_nodes(self):
         """Removes extra nodes introduced during normalization from the root."""
         self.productions = [p.remove_normalized_nodes() for p in self.productions]
+        # If there is only one production, return it
         if len(self.productions) == 1:
             return self.productions[0]
         return self
