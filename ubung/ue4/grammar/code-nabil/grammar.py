@@ -156,7 +156,7 @@ class Grammar:
     def __repr__(self):
         # Format the grammar rules as a string
         grammar_str = "#ABNF V1.0 utf-8;\n"
-        grammar_str += f"language = {self.language};\n"
+        grammar_str += f"{self.language}\n"
 
         for rule in self.rules:
             if "public" in str(rule):
