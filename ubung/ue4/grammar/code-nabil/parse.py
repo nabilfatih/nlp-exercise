@@ -42,7 +42,9 @@ class ParseNode:
     # H 4.1.4
     def remove_normalized_nodes(self):
         """Recursively removes extra nodes introduced during normalization."""
-        self.productions = [p.remove_normalized_nodes() for p in self.productions if not p.symbol.normalized]
+        self.productions = [p.remove_normalized_nodes() for p in self.productions]
+        if len(self.productions) == 1:
+            return self.productions[0]
         return self
 
 
@@ -76,4 +78,7 @@ class ParseTree(ParseNode):
     # H 4.1.4
     def remove_normalized_nodes(self):
         """Removes extra nodes introduced during normalization from the root."""
-        return self.productions[0].remove_normalized_nodes()
+        self.productions = [p.remove_normalized_nodes() for p in self.productions]
+        if len(self.productions) == 1:
+            return self.productions[0]
+        return self
