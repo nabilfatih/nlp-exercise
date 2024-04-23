@@ -11,16 +11,13 @@ grammar = {
 
 # Define the knowledge base for semantic analysis
 knowledge_base = {
-    "Noah": lambda: "Noah",
-    "expensive": lambda: "expensive",
-    "restaurants": lambda: "restaurants",
+    "Noah": "Noah",
+    "expensive": "expensive",
+    "restaurants": "restaurants",
     "likes": lambda x, y: f"{x} likes {y}",
 }
 
 def parse_sentence(tokens, start_symbol="$S"):
-    if len(tokens) == 0:
-        return None
-    
     if start_symbol not in grammar:
         return None
     
@@ -28,11 +25,20 @@ def parse_sentence(tokens, start_symbol="$S"):
         parse_tree = {}
         index = 0
         for symbol in production:
-            subtree = parse_sentence(tokens[index:], symbol)
-            if subtree is None:
+            if index >= len(tokens):
                 break
-            parse_tree[symbol] = subtree
-            index += len(subtree.get("tokens", []))
+            if symbol.startswith("$"):
+                subtree = parse_sentence(tokens[index:], symbol)
+                if subtree is None:
+                    break
+                parse_tree[symbol] = subtree
+                index += len(subtree.get("tokens", []))
+            else:
+                if tokens[index] == symbol:
+                    parse_tree[symbol] = tokens[index]
+                    index += 1
+                else:
+                    break
         else:
             return {"symbol": start_symbol, "production": production, "subtree": parse_tree, "tokens": tokens[:index]}
     return None
@@ -43,9 +49,9 @@ def evaluate_semantics(parse_tree):
     if symbol not in knowledge_base:
         return None
     if len(production) == 1:
-        return knowledge_base[symbol]()
+        return knowledge_base[symbol]
     else:
-        args = [evaluate_semantics(parse_tree["subtree"][symbol]) for symbol in production[1:]]
+        args = [parse_tree["subtree"][symbol] if symbol in parse_tree["subtree"] else symbol for symbol in production[1:]]
         return knowledge_base[symbol](*args)
 
 def parse_and_evaluate(sentence):
