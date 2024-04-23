@@ -12,9 +12,9 @@ knowledge_base = {
 
 # Define the grammar rules along with semantic representations
 grammar_rules = {
-    "$S": "('Likes', 'Noah', x)",
-    "$NP": "('NNP', x)",
-    "$NNP": "'Noah'",
+    "$S": "(all(Expensive(x) for x in y) and all(Restaurant(x) for x in y) and Likes(Noah, y))",
+    "$NP": "(lambda f: f('Noah'))",
+    "$NNP": "(lambda f: f('Noah'))",
     "$VP": "('Likes', y, x)",
     "$VBZ": "(lambda f, y: all(f(x) for x in y) and ('Likes', y, x))",
     "$JJ": "(lambda x: ('Expensive', x))",
