@@ -12,30 +12,45 @@ knowledge_base = {
 
 # Define the grammar rules along with semantic representations
 grammar_rules = {
-    "$S": "Likes(Noah, x)",
-    "$NP": "NNP(x)",
+    "$S": "('Likes', 'Noah', x)",
+    "$NP": "('NNP', x)",
     "$NNP": "'Noah'",
-    "$VP": "Likes(y, x)",
-    "$VBZ": "Likes(y, x)",
-    "$JJ": "JJ(x)",
-    "$NNS": "NNS(x)"
+    "$VP": "('Likes', y, x)",
+    "$VBZ": "(lambda f, y: all(f(x) for x in y) and ('Likes', y, x))",
+    "$JJ": "(lambda x: ('Expensive', x))",
+    "$NNS": "(lambda x: ('Restaurant', x))"
 }
 
 # Define a simple Likes function
 def Likes(subject, object):
     return f"{subject} likes {object}"
 
-def JJ(adjective):
-    return f"{adjective}"
+def Expensive(adjective):
+    return f"Expensive({adjective})"
 
-def NNS(noun):
-    return f"{noun}"
+def Restaurant(noun):
+    return f"Restaurant({noun})"
 
 # Convert lambda expressions to executable Python code
 def convert_to_lambda(expression):
     # Replace 'x' placeholder with actual parameter name
     expression = expression.replace("x", "y")
     return eval(f"lambda y: {expression}")
+
+# Function to evaluate the semantic representation
+def evaluate_semantic_representation(semantic_representation, words):
+    if isinstance(semantic_representation, tuple):
+        # If it's a tuple, it represents a semantic structure
+        if len(semantic_representation) == 1:
+            return semantic_representation[0]
+        else:
+            # Build the semantic representation recursively
+            return semantic_representation[0] + '(' + ', '.join(evaluate_semantic_representation(arg, words) for arg in semantic_representation[1:]) + ')'
+    elif callable(semantic_representation):
+        # If it's a function, call it with the provided argument
+        return semantic_representation(words)
+    else:
+        return semantic_representation
 
 # Function to parse a sentence and return its semantic representation
 def parse_sentence(sentence):
@@ -61,7 +76,7 @@ def parse_sentence(sentence):
             # Handle unknown words
             print(f"Unknown word: {word}")
 
-    return semantic_representation
+    return evaluate_semantic_representation(semantic_representation, words)
 
 # Example sentences
 sentences = [
