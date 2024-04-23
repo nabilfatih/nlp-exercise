@@ -11,7 +11,8 @@ grammar_rules = {
     "$S": "(all(Expensive(x) for x in y) and all(Restaurant(x) for x in y) and Likes(Noah, y))",
     "$NP": "(lambda f: f('Noah'))",
     "$NNP": "(lambda f: f('Noah'))",
-    "$VP": "('Likes', y, x)",
+    "$VP": "(lambda y: all(Expensive(x) for x in y) and all(Restaurant(x) for x in y) and Likes(Noah, y))",
+    "$NP": "(lambda x: Expensive(x) and Restaurant(x))",
     "$VBZ": "(lambda f, y: all(f(x) for x in y) and ('Likes', y, x))",
     "$JJ": "(lambda x: ('Expensive', x))",
     "$NNS": "(lambda x: ('Restaurant', x))"
