@@ -4,10 +4,6 @@ knowledge_base = {
     "likes": "$VBZ",
     "expensive": "$JJ",
     "restaurants": "$NNS",
-    "Sarah": "$NNP",
-    "dislikes": "$VBZ",
-    "noisy": "$JJ",
-    "bars": "$NNS"
 }
 
 # Define the grammar rules along with semantic representations
