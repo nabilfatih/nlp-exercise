@@ -1,51 +1,73 @@
-from collections import defaultdict
+import argparse
 import random
 
-# Sample text with the prefix 'LAM' included in it
-text = "LAMbda functions are anonymous functions in Python. LAMinate the document before submission."
+parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser.add_argument('--random-seed', type=int, default=1,
+                    help='set random seed for replicability; 0 implies truly random seed')
+parser.add_argument('--source', type=str, required=True)
+parser.add_argument('-N', type=int, default=3)
+parser.add_argument('--start', type=str, required=True)
+parser.add_argument('--length', type=int, default=5000)
 
-# Function to build the N-gram model from the given text
-def build_ngram_model(text, N):
-    ngrams = defaultdict(list)
-    # Create all possible N-grams
-    for i in range(len(text) - N):
-        key = text[i:i+N-1]  # Extract the prefix of length N-1
-        value = text[i+N-1]  # The next character after the prefix
-        ngrams[key].append(value)
-    return ngrams
-
-# Function to generate text using the N-gram model
-def generate_text(ngrams, prefix, length):
-    if len(prefix) != N-1:
-        raise ValueError("Prefix length must be N-1.")
-    
-    output = prefix  # Start the output with the given prefix
-    for _ in range(length):
-        choices = ngrams.get(prefix, None)  # Get possible next characters
-        if not choices:
-            break  # No possible extensions, stop generation
-        next_char = random.choice(choices)  # Randomly select the next character
-        output += next_char  # Add the selected character to the output
-        prefix = prefix[1:] +next_char  # Update the prefix
-    return output
-
-# Parameters for the N-gram model
-N = 4  # Using trigrams (N=4 means we consider three characters and predict the fourth)
-prefix = 'LAM'
-length = 100  # Generate 100 characters
-
-# Build the model and generate text
-ngrams = build_ngram_model(text, N)
-generated_text = generate_text(ngrams, prefix, length)
-
-# Print the generated text
-print(generated_text)
+# let's represent n-grams in the following way
+# for each n-gram prefix we keep a hash which includes the count at key, say, 0,
+# and next characters (i.e., full n-grams) in keys corresponding to the character.
 
 
-"""
-1. N too large: If N is too large, you might not find any matches for the given prefix in the text, leading to very short or no output.
+def ngrams_from_text(f, N):
+    prefix = list(f.read(N - 1))
+    last = f.read(1)
+    while last != '':
+        yield prefix, last
+        prefix = prefix[1:] + list(last)
+        last = f.read(1)
 
-2. Representation of N-gram data: In this script, we used a dictionary to map prefixes to possible continuations.
-   This is memory intensive but fast for lookup. An alternative could be using a trie (prefix tree), 
-   which might save memory at the cost of potentially slower lookups.
-"""
+
+def get_base_node(model, prefix):
+    """from our model tree, get the node that represents the prefix"""
+    node = model
+    for c in prefix:
+        if c not in node:
+            node[c] = {}
+        node = node[c]
+    return node
+
+
+def add_ngram_to_model(model, prefix, last):
+    base = get_base_node(model, prefix)
+    if last not in base:
+        base[last] = 0
+    base[last] += 1
+
+
+def generate(model, start):
+    start = list(start)
+    while True:
+        base = get_base_node(model, start)
+        chars, counts = zip(*base.items())
+        char_list = random.choices(population=chars, weights=counts, k=1)
+        start = start[1:] + char_list
+        yield char_list[0]
+
+
+def estimate_model(args):
+    model = {}
+    with open(args.source, 'r', encoding='utf-8') as f:
+        ngram_source = ngrams_from_text(f, args.N)
+        for ngram in ngram_source:
+            add_ngram_to_model(model, ngram[0], ngram[1])
+    return model
+
+
+if __name__ == '__main__':
+    args = parser.parse_args()
+    model = estimate_model(args)
+    assert len(args.start) == args.N - 1
+    print(args.start, end='')
+    i = 0
+    for c in generate(model, args.start):
+        print(c, end='')
+        i += 1
+        if i > args.length:
+            break
+    print()
